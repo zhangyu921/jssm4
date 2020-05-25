@@ -1,8 +1,9 @@
 {
   "name": "jssm4",
   "version": "1.0.0",
-  "description": "",
-  "main": "node.js",
+  "description": "国密SM4加解密工具，支持浏览器与Node环境",
+  "main": "dist/jssm4.min.js",
+  "private": false,
   "scripts": {
     "test": "node ./test/index.test.js",
     "start": "webpack -w --mode development",
@@ -12,9 +13,11 @@
     "type": "git",
     "url": "git+https://github.com/zhangyu921/jssm4.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "sm4"
+  ],
+  "author": "zhangyu921",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/zhangyu921/jssm4/issues"
   },
