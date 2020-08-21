@@ -1,6 +1,6 @@
 {
   "name": "jssm4",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "国密SM4加解密工具，支持浏览器与Node环境",
   "main": "index.js",
   "types": "index.d.ts",
