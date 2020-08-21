@@ -1,5 +1,5 @@
 export class JSSM4 {
-  constructor(key: string): void;
+  constructor(key: string);
   encryptData_ECB(text: string): string;
   decryptData_ECB(serect: string): string;
 }
