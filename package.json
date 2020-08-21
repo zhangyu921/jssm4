@@ -3,7 +3,7 @@
   "version": "1.0.2",
   "description": "国密SM4加解密工具，支持浏览器与Node环境",
   "main": "dist/jssm4.min.js",
-  "types": "index.d.ts",
+  "types": "jssm4.d.ts",
   "private": false,
   "scripts": {
     "test": "node ./test/index.test.js",
