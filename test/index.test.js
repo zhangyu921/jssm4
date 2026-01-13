@@ -1,7 +1,7 @@
-const SM4 = require("../dist/jssm4.min.js");
+import JSSM4 from "../lib/jssm4.esm.js";
 
-var sKey = "qawsedrftgyhujik";
-var sm4 = new SM4(sKey);
+const sKey = "qawsedrftgyhujik";
+const sm4 = new JSSM4(sKey);
 
 var endata = sm4.encryptData_ECB("ABC");
 console.assert(endata === "+EYlYYdds6S9o8gG6BVZIQ==", "Encrypt Error!");
