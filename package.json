@@ -25,6 +25,7 @@
     "test": "node ./test/index.test.js",
     "dev": "rollup -c -w",
     "build": "rollup -c",
+    "demo": "serve . -p 3000",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -51,6 +52,7 @@
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "rollup": "^4.55.1"
+    "rollup": "^4.55.1",
+    "serve": "^14.2.5"
   }
 }
