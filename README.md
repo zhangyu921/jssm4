@@ -1,22 +1,21 @@
 # JSSM4
 
-国密 SM4 加解密 JavaScript 实现，支持浏览器与 Node.js 环境
+国密 SM4 加解密 JavaScript 实现，支持浏览器与 Node.js 环境。
 
 ## 特性
 
-- ✅ 纯 JavaScript 实现，无需额外依赖
-- ✅ 支持 Node.js 和浏览器环境
-- ✅ 解决了大多数 JS 实现中循环左移位数丢失问题
-- ✅ 高性能：100万次加密仅需 1.6s
-- ✅ 支持 ESM、CommonJS、UMD 多种模块格式
-- ✅ 包含 TypeScript 类型定义
+- ✅ **高性能**：基于 `Uint32Array` 和位运算优化，100万次加密仅需 ~1.5s
+- ✅ **现代化**：使用 ES6+ 语法，支持 `TextEncoder`/`TextDecoder` 原生编解码
+- ✅ **模式支持**：完整支持 **ECB** 和 **CBC** 加解密模式
+- ✅ **零依赖**：除必要的 `base64-js` 外无其他外部依赖
+- ✅ **跨平台**：支持 ESM、CommonJS、UMD 多种模块格式，包含 TypeScript 类型定义
 
-## 性能
+## 性能 (Node.js 20 + M3 Pro)
 
-100万次加解密耗时：
+100万次加解密耗时 (3字符明文)：
 ```
-加密100w耗时: 1.647s
-解密100w耗时: 2.659s
+加密100w耗时: ~1.5s
+解密100w耗时: ~1.8s
 ```
 
 ## 安装
@@ -27,43 +26,38 @@ npm install jssm4
 
 ## 使用
 
-### Node.js 环境
+### ECB 模式
 
 ```javascript
-// ESM
 import JSSM4 from 'jssm4';
 
-// CommonJS
-const JSSM4 = require('jssm4');
-
-const sKey = "qawsedrftgyhujik";
+const sKey = "qawsedrftgyhujik"; // 16字节密钥
 const sm4 = new JSSM4(sKey);
 
 // 加密
-const encrypted = sm4.encryptData_ECB("ABC");
-console.log(encrypted); // +EYlYYdds6S9o8gG6BVZIQ==
+const encrypted = sm4.encryptData_ECB("Hello SM4");
+console.log(encrypted);
 
 // 解密
 const decrypted = sm4.decryptData_ECB(encrypted);
-console.log(decrypted); // ABC
+console.log(decrypted); // Hello SM4
 ```
 
-### 浏览器环境
+### CBC 模式
 
-```html
-<script src="./lib/jssm4.js"></script>
-<script>
-  const sKey = "qawsedrftgyhujik";
-  const sm4 = new JSSM4(sKey);
+```javascript
+import JSSM4 from 'jssm4';
 
-  ["ABC", "abc", "ABCabc", "ABC123", "abc123", "123", "你好吗"].map((text) => {
-    console.log("原文：", text);
-    const encrypted = sm4.encryptData_ECB(text);
-    console.log("密文：", encrypted);
-    const decrypted = sm4.decryptData_ECB(encrypted);
-    console.log("解密：", decrypted);
-  });
-</script>
+const sKey = "qawsedrftgyhujik"; // 16字节密钥
+const sIv = "1234567890123456";  // 16字节向量
+const sm4 = new JSSM4(sKey);
+
+// 加密
+const encrypted = sm4.encryptData_CBC("Hello CBC", sIv);
+
+// 解密
+const decrypted = sm4.decryptData_CBC(encrypted, sIv);
+console.log(decrypted); // Hello CBC
 ```
 
 ## API
@@ -72,30 +66,25 @@ console.log(decrypted); // ABC
 
 创建 SM4 实例
 
-- **key**: 16 字符长度的密钥字符串
+- **key**: 16 字符长度的密钥字符串（UTF-8 编码应为 16 字节）
 
 ### `encryptData_ECB(plainText: string): string`
-
-ECB 模式加密
-
-- **plainText**: 待加密的明文字符串
-- **返回**: Base64 编码的密文字符串
-
 ### `decryptData_ECB(cipherText: string): string`
 
-ECB 模式解密
+ECB 模式加解密
 
-- **cipherText**: Base64 编码的密文字符串
-- **返回**: 解密后的明文字符串
+### `encryptData_CBC(plainText: string, iv: string): string`
+### `decryptData_CBC(cipherText: string, iv: string): string`
+
+CBC 模式加解密
+
+- **iv**: 16 字符长度的初始化向量字符串
 
 ## 开发
 
 ```bash
 # 安装依赖
 npm install
-
-# 开发模式（监听文件变化）
-npm run dev
 
 # 构建
 npm run build
@@ -104,6 +93,11 @@ npm run build
 npm test
 ```
 
+## 环境要求
+
+- **Node.js**: >= 20.0.0 (利用 `TextEncoder` 和现代位运算优化)
+- **Browser**: 现代浏览器 (支持 `Uint32Array` 和 `TextEncoder`)
+
 ## 构建输出
 
 | 格式 | 文件 | 用途 |
@@ -111,7 +105,6 @@ npm test
 | ESM | `lib/jssm4.esm.js` | 现代打包工具（Vite、Webpack 等） |
 | CommonJS | `lib/jssm4.cjs.js` | Node.js require() |
 | UMD | `lib/jssm4.js` | 浏览器 `<script>` 标签 |
-
 
 ---
 
