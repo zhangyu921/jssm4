@@ -1,0 +1,71 @@
+# 文件名必须与 npmjs.com → Package → Settings → Trusted publishing 中填写的
+# 「Workflow filename」完全一致（含 .yml）。
+
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Trusted publishing 要求 Node ≥22.14 且 npm CLI ≥11.5.1（见 npm 文档）
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      - name: Verify tag matches package.json version
+        run: |
+          REF="${GITHUB_REF_NAME}"
+          TAG_VER="${REF#v}"
+          PKG_VER=$(node -p "require('./package.json').version")
+          if [ "$TAG_VER" != "$PKG_VER" ]; then
+            echo "::error::Tag is ${REF} but package.json version is ${PKG_VER}. Run \`npm version\` and push the new tag."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      # Trusted publishing 需要 npm ≥11.5.1（Node 22 自带的 npm 可能不够新）
+      - name: Ensure npm for Trusted publishing
+        run: npm install -g "npm@^11.5.1"
+
+      # 二选一：未配置仓库 secret NPM_TOKEN 时使用 OIDC（需在 npm 配置 Trusted Publisher）
+      - name: Publish to npm (OIDC Trusted Publisher)
+        if: ${{ secrets.NPM_TOKEN == '' }}
+        run: npm publish --access public
+
+      - name: Publish to npm (automation token)
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
