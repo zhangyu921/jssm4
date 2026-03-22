@@ -1,6 +1,6 @@
 {
   "name": "jssm4",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "国密SM4加解密工具，支持浏览器与Node环境",
   "main": "lib/jssm4.cjs.js",
   "module": "lib/jssm4.esm.js",
