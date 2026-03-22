@@ -1,29 +1,480 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Title</title>
-    <script src="./lib/jssm4.js"></script>
-  </head>
-  <body>
-    <script>
-      var sKey = "qawsedrftgyhujik";
-      var sm4 = new JSSM4(sKey);
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSSM4 加解密演示</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      ["ABC", "abc", "ABCabc", "ABC123", "abc123", "123", "你好吗"].map(
-        (text) => {
-          console.log("原文：", text);
-          console.time("加密耗时");
-          var endata = sm4.encryptData_ECB(text);
-          console.timeEnd("加密耗时");
-          console.log("密文：", endata);
-          console.time("解密耗时");
-          var dedata = sm4.decryptData_ECB(endata);
-          console.timeEnd("解密耗时");
-          console.log("解密：", dedata);
-          console.log("-----------");
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .card h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h2::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: #667eea;
+      border-radius: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      font-family: 'Courier New', monospace;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .result {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      border-left: 4px solid #667eea;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+    }
+
+    .result strong {
+      color: #667eea;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .test-output {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .test-output .success {
+      color: #4ec9b0;
+    }
+
+    .test-output .error {
+      color: #f5576c;
+    }
+
+    .test-output .info {
+      color: #9cdcfe;
+    }
+
+    .test-output .time {
+      color: #ce9178;
+    }
+
+    .test-output .separator {
+      color: #666;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stat-card .label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .hint {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔐 JSSM4 加解密演示</h1>
+      <p>高性能国密 SM4 算法 (ECB & CBC) 在线测试工具</p>
+    </header>
+
+    <!-- 运行测试 -->
+    <div class="card">
+      <h2>🧪 运行测试</h2>
+      <button onclick="runTests()">运行多模式测试</button>
+      <button onclick="runPerformanceTest()" class="secondary">运行百万次性能测试</button>
+      <div id="test-output"></div>
+      <div class="stats" id="stats" style="display: none;"></div>
+    </div>
+
+    <div class="grid">
+      <!-- 通用配置 -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <h2>⚙️ 通用配置</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+          <div class="form-group">
+            <label for="config-key">密钥 (16字节)</label>
+            <input type="text" id="config-key" value="qawsedrftgyhujik" maxlength="16" placeholder="请输入16个字符">
+            <div class="hint">密钥必须是16个字符</div>
+          </div>
+          <div class="form-group">
+            <label for="config-mode">加密模式</label>
+            <select id="config-mode" onchange="toggleIvField()">
+              <option value="ECB">ECB (电子密码本)</option>
+              <option value="CBC">CBC (密码分组链接)</option>
+            </select>
+          </div>
+          <div class="form-group" id="iv-group" class="hidden" style="display: none;">
+            <label for="config-iv">IV 向量 (16字节)</label>
+            <input type="text" id="config-iv" value="1234567890123456" maxlength="16" placeholder="请输入16个字符">
+            <div class="hint">CBC 模式必需</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 加密 -->
+      <div class="card">
+        <h2>🔒 加密</h2>
+        <div class="form-group">
+          <label for="enc-text">明文</label>
+          <textarea id="enc-text" placeholder="请输入要加密的内容">Hello, 国密 SM4 🚀</textarea>
+        </div>
+        <button onclick="encrypt()">加密</button>
+        <div id="enc-result"></div>
+      </div>
+
+      <!-- 解密 -->
+      <div class="card">
+        <h2>🔓 解密</h2>
+        <div class="form-group">
+          <label for="dec-text">密文 (Base64)</label>
+          <textarea id="dec-text" placeholder="请输入要解密的密文"></textarea>
+        </div>
+        <button onclick="decrypt()">解密</button>
+        <div id="dec-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./lib/jssm4.js"></script>
+  <script>
+    function toggleIvField() {
+      const mode = document.getElementById('config-mode').value;
+      const ivGroup = document.getElementById('iv-group');
+      ivGroup.style.display = mode === 'CBC' ? 'block' : 'none';
+    }
+
+    function showResult(elementId, title, content, isError = false) {
+      const resultDiv = document.getElementById(elementId);
+      const color = isError ? '#f5576c' : '#4ec9b0';
+      resultDiv.innerHTML = `
+        <div class="result" style="border-left-color: ${color}">
+          <strong style="color: ${color}">${title}</strong><br>
+          ${content}
+        </div>
+      `;
+    }
+
+    function encrypt() {
+      try {
+        const key = document.getElementById('config-key').value;
+        const mode = document.getElementById('config-mode').value;
+        const iv = document.getElementById('config-iv').value;
+        const text = document.getElementById('enc-text').value;
+
+        if (key.length !== 16) throw new Error('密钥必须是16个字符');
+        if (mode === 'CBC' && iv.length !== 16) throw new Error('IV 必须是16个字符');
+
+        const sm4 = new JSSM4(key);
+        const startTime = performance.now();
+        let encrypted;
+        
+        if (mode === 'ECB') {
+          encrypted = sm4.encryptData_ECB(text);
+        } else {
+          encrypted = sm4.encryptData_CBC(text, iv);
         }
-      );
-    </script>
-  </body>
+        
+        const time = (performance.now() - startTime).toFixed(3);
+        
+        document.getElementById('dec-text').value = encrypted;
+        showResult('enc-result', '✅ 加密成功 (' + mode + ')', `
+          密文：${encrypted}<br>
+          <span style="color: #666; font-size: 0.9rem;">耗时：${time}ms</span>
+        `);
+      } catch (error) {
+        showResult('enc-result', '❌ 加密失败', error.message, true);
+      }
+    }
+
+    function decrypt() {
+      try {
+        const key = document.getElementById('config-key').value;
+        const mode = document.getElementById('config-mode').value;
+        const iv = document.getElementById('config-iv').value;
+        const text = document.getElementById('dec-text').value;
+
+        if (key.length !== 16) throw new Error('密钥必须是16个字符');
+        if (mode === 'CBC' && iv.length !== 16) throw new Error('IV 必须是16个字符');
+        if (!text) throw new Error('请输入要解密的密文');
+
+        const sm4 = new JSSM4(key);
+        const startTime = performance.now();
+        let decrypted;
+
+        if (mode === 'ECB') {
+          decrypted = sm4.decryptData_ECB(text);
+        } else {
+          decrypted = sm4.decryptData_CBC(text, iv);
+        }
+
+        const time = (performance.now() - startTime).toFixed(3);
+
+        showResult('dec-result', '✅ 解密成功 (' + mode + ')', `
+          明文：${decrypted}<br>
+          <span style="color: #666; font-size: 0.9rem;">耗时：${time}ms</span>
+        `);
+      } catch (error) {
+        showResult('dec-result', '❌ 解密失败', error.message, true);
+      }
+    }
+
+    function runTests() {
+      const output = document.getElementById('test-output');
+      output.innerHTML = '<div class="test-output">正在运行多模式测试...</div>';
+      
+      setTimeout(() => {
+        let html = '<div class="test-output">';
+        const sKey = "qawsedrftgyhujik";
+        const sIv = "1234567890123456";
+        const sm4 = new JSSM4(sKey);
+
+        const testCases = [
+          { mode: 'ECB', input: "Hello ECB", iv: null },
+          { mode: 'CBC', input: "Hello CBC", iv: sIv },
+          { mode: 'ECB', input: "你好，中国 🇨🇳", iv: null },
+          { mode: 'CBC', input: "Rocket 🚀", iv: sIv }
+        ];
+
+        testCases.forEach(({ mode, input, iv }, index) => {
+          let encrypted, decrypted;
+          const start = performance.now();
+          
+          if (mode === 'ECB') {
+            encrypted = sm4.encryptData_ECB(input);
+            decrypted = sm4.decryptData_ECB(encrypted);
+          } else {
+            encrypted = sm4.encryptData_CBC(input, iv);
+            decrypted = sm4.decryptData_CBC(encrypted, iv);
+          }
+          
+          const time = (performance.now() - start).toFixed(3);
+          const pass = decrypted === input;
+          
+          html += `<span class="${pass ? 'success' : 'error'}">测试 ${index + 1} [${mode}]: ${pass ? '✓ 通过' : '✗ 失败'}</span><br>`;
+          html += `  原文: "${input}"<br>`;
+          html += `  密文: ${encrypted}<br>`;
+          html += `  <span class="time">总耗时: ${time}ms</span><br>`;
+          html += '<span class="separator">─────────────────────────────</span><br>';
+        });
+
+        html += '<br><span class="success">✅ 所有测试完成！</span>';
+        html += '</div>';
+        output.innerHTML = html;
+      }, 100);
+    }
+
+    function runPerformanceTest() {
+      const output = document.getElementById('test-output');
+      const statsDiv = document.getElementById('stats');
+      
+      output.innerHTML = '<div class="test-output"><span class="info">⏱️  正在运行百万次性能测试 (Node.js 20 级别优化)...</span></div>';
+      statsDiv.style.display = 'none';
+
+      setTimeout(() => {
+        const sKey = "qawsedrftgyhujik";
+        const sm4 = new JSSM4(sKey);
+        const iterations = 1000000; // 100万次
+
+        // 加密性能测试
+        const encStart = performance.now();
+        for (let i = 0; i < iterations; i++) {
+          sm4.encryptData_ECB("ABC");
+        }
+        const encEnd = performance.now();
+        const encTime = ((encEnd - encStart) / 1000).toFixed(3);
+        const encOps = Math.round(iterations / (encEnd - encStart) * 1000);
+
+        // 解密性能测试
+        const cipher = "+EYlYYdds6S9o8gG6BVZIQ==";
+        const decStart = performance.now();
+        for (let i = 0; i < iterations; i++) {
+          sm4.decryptData_ECB(cipher);
+        }
+        const decEnd = performance.now();
+        const decTime = ((decEnd - decStart) / 1000).toFixed(3);
+        const decOps = Math.round(iterations / (decEnd - decStart) * 1000);
+
+        output.innerHTML = `
+          <div class="test-output">
+            <span class="info">🚀 1,000,000 次加解密性能测试完成</span><br><br>
+            <span class="success">ECB 加密 (100w次):</span> <span class="time">${encTime}s</span> (${encOps.toLocaleString()} ops/s)<br>
+            <span class="success">ECB 解密 (100w次):</span> <span class="time">${decTime}s</span> (${decOps.toLocaleString()} ops/s)<br><br>
+            <span class="success">✅ 性能测试完成！基于 Uint32Array 优化。</span>
+          </div>
+        `;
+
+        statsDiv.innerHTML = `
+          <div class="stat-card">
+            <div class="value">${encTime}s</div>
+            <div class="label">1M 次加密</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">${decTime}s</div>
+            <div class="label">1M 次解密</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">${encOps.toLocaleString()}</div>
+            <div class="label">加密速度 (ops/s)</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">${decOps.toLocaleString()}</div>
+            <div class="label">解密速度 (ops/s)</div>
+          </div>
+        `;
+        statsDiv.style.display = 'grid';
+      }, 100);
+    }
+  </script>
+</body>
 </html>

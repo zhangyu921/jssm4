@@ -1,52 +1,121 @@
 import base64js from "base64-js";
-import { Context, sm4_crypt_ecb, sm4_setkey_enc, sm4_setkey_dec } from "./sm4";
+import { Context, sm4_crypt_ecb, sm4_crypt_cbc, sm4_setkey_enc, sm4_setkey_dec } from "./sm4";
 import { stringToByte, byteToString } from "./utils";
 
-function JSSM4(key) {
-  this.seckey = key;
-  this.encryptData_ECB = encryptData_ECB;
-  this.decryptData_ECB = decryptData_ECB;
-
-  // this.hexString = false;
-  function encryptData_ECB(plainText) {
-    var ctx = new Context();
-
-    ctx.isPadding = true;
-    ctx.mode = 1;
-    var keyBytes;
-    try {
-      if (this.seckey == null) {
-        throw "key 不规范";
-      }
-      keyBytes = stringToByte(this.seckey);
-    } catch (e) {
-      Error(e.message);
+/**
+ * JSSM4 加解密类
+ */
+class JSSM4 {
+  /**
+   * @param {string} key 16 字节密钥字符串
+   */
+  constructor(key) {
+    if (!key || key.length !== 16) {
+      throw new Error("Key must be a 16-character string.");
     }
-    // alert("key"+keyBytes.length)
-    sm4_setkey_enc(ctx, keyBytes);
-    var encrypted = sm4_crypt_ecb(ctx, stringToByte(plainText));
-    var cipherText = base64js.fromByteArray(encrypted);
-    if (cipherText != null && cipherText.trim().length > 0) {
-      cipherText.replace(/(\s*|\t|\r|\n)/g, "");
-    }
-    // alert(cipherText);
-    return cipherText;
+    this.seckey = key;
   }
 
-  function decryptData_ECB(cipherText) {
-    try {
-      var ctx = new Context();
-      ctx.isPadding = true;
-      ctx.mode = 0;
-
-      var keyBytes = stringToByte(this.seckey);
-      sm4_setkey_dec(ctx, keyBytes);
-      var decrypted = sm4_crypt_ecb(ctx, base64js.toByteArray(cipherText));
-      return byteToString(decrypted);
-    } catch (e) {
-      Error(e.message);
-      return null;
+  /**
+   * ECB 模式加密
+   * @param {string} plainText 明文字符串
+   * @returns {string} Base64 编码的密文
+   */
+  encryptData_ECB(plainText) {
+    if (plainText === null || plainText === undefined) {
+      throw new Error("plainText cannot be null or undefined.");
     }
+
+    const ctx = new Context();
+    ctx.isPadding = true;
+    ctx.mode = 1;
+
+    const keyBytes = stringToByte(this.seckey);
+    const plainBytes = stringToByte(plainText);
+
+    sm4_setkey_enc(ctx, keyBytes);
+    const encrypted = sm4_crypt_ecb(ctx, plainBytes);
+    
+    return base64js.fromByteArray(encrypted);
+  }
+
+  /**
+   * ECB 模式解密
+   * @param {string} cipherText Base64 编码的密文
+   * @returns {string} 明文字符串
+   */
+  decryptData_ECB(cipherText) {
+    if (!cipherText) {
+      return "";
+    }
+
+    const ctx = new Context();
+    ctx.isPadding = true;
+    ctx.mode = 0;
+
+    const keyBytes = stringToByte(this.seckey);
+    const cipherBytes = base64js.toByteArray(cipherText);
+
+    sm4_setkey_dec(ctx, keyBytes);
+    const decrypted = sm4_crypt_ecb(ctx, cipherBytes);
+    
+    return byteToString(decrypted);
+  }
+
+  /**
+   * CBC 模式加密
+   * @param {string} plainText 明文字符串
+   * @param {string} iv 16 字节向量字符串
+   * @returns {string} Base64 编码的密文
+   */
+  encryptData_CBC(plainText, iv) {
+    if (plainText === null || plainText === undefined) {
+      throw new Error("plainText cannot be null or undefined.");
+    }
+    if (!iv || iv.length !== 16) {
+      throw new Error("IV must be a 16-character string.");
+    }
+
+    const ctx = new Context();
+    ctx.isPadding = true;
+    ctx.mode = 1;
+
+    const keyBytes = stringToByte(this.seckey);
+    const ivBytes = stringToByte(iv);
+    const plainBytes = stringToByte(plainText);
+
+    sm4_setkey_enc(ctx, keyBytes);
+    const encrypted = sm4_crypt_cbc(ctx, ivBytes, plainBytes);
+    
+    return base64js.fromByteArray(encrypted);
+  }
+
+  /**
+   * CBC 模式解密
+   * @param {string} cipherText Base64 编码的密文
+   * @param {string} iv 16 字节向量字符串
+   * @returns {string} 明文字符串
+   */
+  decryptData_CBC(cipherText, iv) {
+    if (!cipherText) {
+      return "";
+    }
+    if (!iv || iv.length !== 16) {
+      throw new Error("IV must be a 16-character string.");
+    }
+
+    const ctx = new Context();
+    ctx.isPadding = true;
+    ctx.mode = 0;
+
+    const keyBytes = stringToByte(this.seckey);
+    const ivBytes = stringToByte(iv);
+    const cipherBytes = base64js.toByteArray(cipherText);
+
+    sm4_setkey_dec(ctx, keyBytes);
+    const decrypted = sm4_crypt_cbc(ctx, ivBytes, cipherBytes);
+    
+    return byteToString(decrypted);
   }
 }
 

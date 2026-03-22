@@ -1,7 +1,7 @@
-const SM4 = require("../dist/jssm4.min.js");
+import JSSM4 from "../lib/jssm4.esm.js";
 
-var sKey = "qawsedrftgyhujik";
-var sm4 = new SM4(sKey);
+const sKey = "qawsedrftgyhujik";
+const sm4 = new JSSM4(sKey);
 
 var endata = sm4.encryptData_ECB("ABC");
 console.assert(endata === "+EYlYYdds6S9o8gG6BVZIQ==", "Encrypt Error!");
@@ -9,7 +9,17 @@ console.assert(endata === "+EYlYYdds6S9o8gG6BVZIQ==", "Encrypt Error!");
 var dedata = sm4.decryptData_ECB("+EYlYYdds6S9o8gG6BVZIQ==");
 console.assert(dedata === "ABC", "Decrypt Error!");
 
-["ABC", "abc", ""].map((text) => {
+const utfCases = [
+  "ABC",
+  "abc",
+  "",
+  "你好，国密SM4",
+  "🚀 Rocket Emoji",
+  "Special Chars: ~!@#$%^&*()_+",
+  "Mixed: 123 中文 English 🧪"
+];
+
+utfCases.map((text) => {
   console.log("原文：", text);
   console.time("加密耗时");
   var endata = sm4.encryptData_ECB(text);
@@ -19,6 +29,7 @@ console.assert(dedata === "ABC", "Decrypt Error!");
   var dedata = sm4.decryptData_ECB(endata);
   console.timeEnd("解密耗时");
   console.log("解密：", dedata);
+  console.assert(dedata === text, `UTF-8 Error for: ${text}`);
   console.log("-----------");
 });
 
