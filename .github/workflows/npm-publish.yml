@@ -32,6 +32,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    # secrets 不能用于 step 的 if（会报 Unrecognized named-value: 'secrets'），改为 job env + shell 分支
+    env:
+      NPM_PUBLISH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -59,13 +62,10 @@ jobs:
       - name: Ensure npm for Trusted publishing
         run: npm install -g "npm@^11.5.1"
 
-      # 二选一：未配置仓库 secret NPM_TOKEN 时使用 OIDC（需在 npm 配置 Trusted Publisher）
-      - name: Publish to npm (OIDC Trusted Publisher)
-        if: ${{ secrets.NPM_TOKEN == '' }}
-        run: npm publish --access public
-
-      - name: Publish to npm (automation token)
-        if: ${{ secrets.NPM_TOKEN != '' }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+      # 未配置 NPM_TOKEN 时不导出 NODE_AUTH_TOKEN，npm 使用 Trusted Publisher（OIDC）
+      - name: Publish to npm
+        run: |
+          if [ -n "${NPM_PUBLISH_TOKEN}" ]; then
+            export NODE_AUTH_TOKEN="${NPM_PUBLISH_TOKEN}"
+          fi
+          npm publish --access public

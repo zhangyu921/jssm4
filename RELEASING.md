@@ -37,7 +37,7 @@
 2. 在 GitHub 仓库 → **Settings** → **Secrets and variables** → **Actions** 中新增 **`NPM_TOKEN`**。
 3. 推送 tag 后，workflow 会使用 `NODE_AUTH_TOKEN` 发布。
 
-配置 token 后，OIDC 步骤会被跳过；若同时配置了 Trusted Publisher，以你实际使用的认证方式为准。
+配置 `NPM_TOKEN` 后，workflow 会在发布步骤导出 `NODE_AUTH_TOKEN`（走 token）；未配置时则不导出，由 npm 使用 Trusted Publisher（OIDC）。
 
 ## 发版后
 
