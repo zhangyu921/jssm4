@@ -1,6 +1,6 @@
 # JSSM4
 
-国密 SM4 加解密 JavaScript 实现，支持浏览器与 Node.js 环境。
+国密 SM4 加解密 JavaScript 实现，解决了大多数 js 实现中循环左移位数丢失问题，与其他语言平台（例如 JAVA）保持一致，同时支持浏览器与 Node.js 环境。
 
 ## 特性
 
