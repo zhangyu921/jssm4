@@ -41,6 +41,6 @@ console.timeEnd("加密100w耗时");
 
 console.time("解密100w耗时");
 for (var i = 0; i < 1000000; i++) {
-  sm4.encryptData_ECB("+EYlYYdds6S9o8gG6BVZIQ==");
+  sm4.decryptData_ECB("+EYlYYdds6S9o8gG6BVZIQ==");
 }
 console.timeEnd("解密100w耗时");

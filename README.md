@@ -1,9 +1,10 @@
 # JSSM4
 
-国密 SM4 加解密 JavaScript 实现，解决了大多数 js 实现中循环左移位数丢失问题，与其他语言平台（例如 JAVA）保持一致，同时支持浏览器与 Node.js 环境。
+国密 SM4 加解密 JavaScript 实现，严格遵循国密标准 GB/T 32907，并采用与 Java / Python 主流实现一致的约定。解决了大多数 JS 实现中循环左移位数丢失导致的跨语言结果「对不上」问题，同时支持浏览器与 Node.js 环境。
 
 ## 特性
 
+- ✅ **跨语言一致**：修正 JavaScript 循环左移位数问题，与 Java / Python 加解密结果一致
 - ✅ **高性能**：基于 `Uint32Array` 和位运算优化，100万次加密仅需 ~1.5s
 - ✅ **现代化**：使用 ES6+ 语法，支持 `TextEncoder`/`TextDecoder` 原生编解码
 - ✅ **模式支持**：完整支持 **ECB** 和 **CBC** 加解密模式
@@ -110,4 +111,3 @@ npm test
 
 基于 泪血夕阳 [sm4实现博文](https://blog.csdn.net/qq_38683138/article/details/99609068)
 参考 [windard](https://github.com/windard/sm4) 循环左移实现
-
